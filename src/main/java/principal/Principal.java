@@ -1,14 +1,15 @@
 package principal;
 
-import com.alura.literatura.model.Datos;
-import com.alura.literatura.model.DatosAutor;
-import com.alura.literatura.model.DatosLibros;
+import com.alura.literatura.model.*;
+import com.alura.literatura.repository.LibroRepository;
 import service.ConsumoAPI;
 import service.ConvierteDatos;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class Principal {
     private Scanner teclado = new Scanner(System.in);
@@ -16,8 +17,13 @@ public class Principal {
     private ConvierteDatos conversor = new ConvierteDatos();
     private final String URL_BASE = "https://gutendex.com/books/";
     private List<DatosLibros> librosBuscados = new ArrayList<>();
-    private List<DatosAutor> autoresBuscados = new ArrayList<>();
+    private List<Autor> autoresBuscados = new ArrayList<Autor>();
     List<String> idiomas = new ArrayList<String>();
+    private LibroRepository repositorio;
+
+    public Principal(LibroRepository repository) {
+        this.repositorio = repository;
+    }
 
     public void muestraElMenu(){
         var json = consumoAPI.obtenerDatos(URL_BASE);
@@ -65,58 +71,47 @@ public class Principal {
         }
     }
     //Buscar el libro mediante la API
-    private DatosLibros buscarLibro() {
-        System.out.println("Digite el título del libro que desea buscar: ");
+
+    private DatosLibros getDatosLibros() {
+        System.out.println("Escribe el nombre del libro que desea buscar: ");
         var nombreLibro = teclado.nextLine();
-        if (nombreLibro.isBlank()){
-            System.out.println("El título no puede estar vacío.");
+
+        var json = ConsumoAPI.obtenerDatos(URL_BASE + "?search=" + nombreLibro.replace(" ", "+"));
+        Datos datos = conversor.obtenerDatos(json,Datos.class); //Para primero mapear al cotenedor
+        if (datos.resultados().isEmpty()){
+            System.out.println("No se encontraron libros con ese título.");
             return null;
-        }else {
-            try {
-                var json = ConsumoAPI.obtenerDatos(URL_BASE + "?search=" + nombreLibro.replace(" ", "+"));
-                System.out.println(json);
-                Datos datos = conversor.obtenerDatos(json, Datos.class);
-                DatosAutor datosAutor = conversor.obtenerDatos(json, DatosAutor.class);
-                if (datos.resultados() != null){
-                    for (DatosLibros libro : datos.resultados()){
-                        boolean yaExiste = librosBuscados.stream()
-                                .anyMatch(l -> l.titulo().equalsIgnoreCase(libro.titulo()));
-                        if (!yaExiste) {
-                            librosBuscados.add(libro);
-                            idiomas.addAll(libro.idiomas());
-                            autoresBuscados.addAll(libro.autor());
-                        }
-                    }
-                }
-            }catch (Exception e) {
-                System.out.println("Error al obtener o procesar los datos del libro: " + e.getMessage());
-            }
         }
-        return null;
+        return datos.resultados().get(0); //Obtiene solo el primer libro
+    }
+    private DatosLibros buscarLibro() {
+        DatosLibros datos = getDatosLibros();
+        if (datos == null) return null;
+        Libro libro = new Libro(datos);
+        List<Autor> autores = datos.autor().stream()
+                        .map(a -> new Autor(a.nombre(),a))
+                        .collect(Collectors.toList());
+
+        libro.setAutores(autores);
+        autores.forEach(a ->a.getLibro().add(libro));
+        repositorio.save(libro);
+        autoresBuscados.addAll(autores);
+        System.out.println(datos);
+        return datos;
     }
     //Listar libros buscados
     private void listarLibros() {
-        if (librosBuscados.isEmpty()) {
-            System.out.println("No hay libros en la lista.");
-            return;
-        }
+        List<Libro> libros = repositorio.findAll();
 
-        for (DatosLibros libro : librosBuscados) {
-            System.out.println("Título: " + libro.titulo());
-
-            System.out.println("Idiomas: " + libro.idiomas());
-            System.out.println("Número de descargas: " + libro.numeroDeDescargas());
-            System.out.println("---------------");
-        }
+        libros.stream()
+                .sorted(Comparator.comparing(Libro::getTitulo))
+                .forEach(System.out::println);
     }
     private void listarAutores() {
         autoresBuscados.forEach(System.out::println);
     }
     private void listarAutoresVivosEnUnAnio(){
         System.out.println("Digite el año por el que desea buscar el autor: ");
-        Integer autorAnio = teclado.nextInt();
-        autoresBuscados.stream()
-                .filter(autoresBuscados -> autoresBuscados.getClass().getYear()==autorAnio);
     }
     private void listarLibrosPorIdioma() {
         idiomas.forEach(System.out::println);
