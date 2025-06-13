@@ -1,6 +1,5 @@
 package com.alura.literatura.model;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -15,7 +14,7 @@ public class Autor {
     private String nombre;
     private Integer fechaDeNacimiento;
     private Integer fechaDeFallecimiento;
-    @ManyToMany(mappedBy = "autores")
+    @ManyToMany(mappedBy = "autores", fetch = FetchType.EAGER)
     private List<Libro> libro = new ArrayList<>();
 
     public Autor () {}

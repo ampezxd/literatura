@@ -1,6 +1,7 @@
 package principal;
 
 import com.alura.literatura.model.*;
+import com.alura.literatura.repository.AutorRepository;
 import com.alura.literatura.repository.LibroRepository;
 import service.ConsumoAPI;
 import service.ConvierteDatos;
@@ -20,9 +21,11 @@ public class Principal {
     private List<Autor> autoresBuscados = new ArrayList<Autor>();
     List<String> idiomas = new ArrayList<String>();
     private LibroRepository repositorio;
+    private AutorRepository autorRepository;
 
-    public Principal(LibroRepository repository) {
+    public Principal(LibroRepository repository, AutorRepository autorRepository) {
         this.repositorio = repository;
+        this.autorRepository = autorRepository;
     }
 
     public void muestraElMenu(){
@@ -108,7 +111,14 @@ public class Principal {
                 .forEach(System.out::println);
     }
     private void listarAutores() {
-        autoresBuscados.forEach(System.out::println);
+       List<Autor> autores = autorRepository.findAll(); //Busca todos los autores en la base de datos
+        if (autores.isEmpty()) {
+            System.out.println("No hay autores registrados en la base de datos.");
+            return;
+        }
+        autores.stream()
+                .sorted(Comparator.comparing(Autor::getNombre))
+                .forEach(System.out::println);
     }
     private void listarAutoresVivosEnUnAnio(){
         System.out.println("Digite el año por el que desea buscar el autor: ");

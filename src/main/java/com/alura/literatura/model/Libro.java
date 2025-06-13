@@ -16,7 +16,7 @@ public class Libro {
 
     private String idioma;
     Double numeroDeDescargas;
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
             name = "libro_autor", //Nombre de la tabla intermedia
             joinColumns = @JoinColumn(name = "libro_id"), //Clave de Libro
