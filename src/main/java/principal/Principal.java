@@ -74,7 +74,6 @@ public class Principal {
         }
     }
     //Buscar el libro mediante la API
-
     private DatosLibros getDatosLibros() {
         System.out.println("Escribe el nombre del libro que desea buscar: ");
         var nombreLibro = teclado.nextLine();
@@ -122,6 +121,12 @@ public class Principal {
     }
     private void listarAutoresVivosEnUnAnio(){
         System.out.println("Digite el año por el que desea buscar el autor: ");
+        Integer fechaABuscar = teclado.nextInt();
+        List<Autor> busquedaDeAutor = autorRepository.autoresPorAnio(fechaABuscar);
+        System.out.println("***Autores vivos en el año: " + fechaABuscar);
+        busquedaDeAutor.forEach(a ->
+                System.out.println(a.getNombre() + " nacio en el año: " + a.getFechaDeNacimiento() + " y fallecio en el año: " + a.getFechaDeFallecimiento()));
+
     }
     private void listarLibrosPorIdioma() {
         idiomas.forEach(System.out::println);
