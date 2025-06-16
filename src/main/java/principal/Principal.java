@@ -126,10 +126,20 @@ public class Principal {
         System.out.println("***Autores vivos en el año: " + fechaABuscar);
         busquedaDeAutor.forEach(a ->
                 System.out.println(a.getNombre() + " nacio en el año: " + a.getFechaDeNacimiento() + " y fallecio en el año: " + a.getFechaDeFallecimiento()));
-
     }
     private void listarLibrosPorIdioma() {
-        idiomas.forEach(System.out::println);
+        System.out.println("Escoja el número que hace referencía al idioma del cual quiere buscar libros");
+        System.out.println("""
+                1.-Español: digite >>es<<
+                2.-Ingles: digite >>en<<
+                """);
+        String opcionIdioma = teclado.nextLine();
+        List<Libro> buscarIdioma = repositorio.idiomaBuscado(opcionIdioma);
+        System.out.println("Libros en el idioma que escogio:");
+        buscarIdioma.forEach(i ->
+                System.out.println(i.getTitulo() + i.getIdioma()));
+        System.out.println("*******************************************************************");
+
 
     }
 }
