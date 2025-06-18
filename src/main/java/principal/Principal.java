@@ -105,9 +105,20 @@ public class Principal {
     private void listarLibros() {
         List<Libro> libros = repositorio.findAll();
 
-        libros.stream()
-                .sorted(Comparator.comparing(Libro::getTitulo))
-                .forEach(System.out::println);
+        System.out.println("***Libros guardados en la base de datos***");
+        libros.forEach(l -> System.out.println(String.format("""
+                        Título: %s
+                        Autor: %s
+                        Idioma: %s
+                        Número de descargas: %s
+                        -----------------------------------
+                        """,
+                        l.getTitulo(),
+                        l.getAutor(),
+                        l.getIdioma(),
+                        l.getNumeroDeDescargas()
+                        )));
+
     }
     private void listarAutores() {
        List<Autor> autores = autorRepository.findAll(); //Busca todos los autores en la base de datos
